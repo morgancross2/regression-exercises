@@ -77,25 +77,33 @@ def impute_mode(train, validate, test, col):
     return train, validate, test
 
 
-def scale_data(X_train, y_train, X_val, y_val, X_test, y_test):
-    '''
-    This function takes in train, val, test datasets and returns the 
-    MinMaxScalar values in new dataframes.
-    '''
-    scaler = MinMaxScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_val_scaled = scaler.transform(X_val)
-    X_test_scaled = scaler.transform(X_test)
+def vis_scaler (scaler, df, cols_to_scale, bins=10):
+    fig, axs = plt.subplots(len(cols_to_scale),2,figsize=(16,9))
+    df_scaled = df.copy()
+    df_scaled[cols_to_scale] = scaler.fit_transform(df[cols_to_scale])
     
-    X_train_scaled = pd.DataFrame(X_train_scaled, columns=['beds','baths','sqft','built','taxes','location'])
-    X_val_scaled = pd.DataFrame(X_val_scaled, columns=['beds','baths','sqft','built','taxes','location'])
-    X_test_scaled = pd.DataFrame(X_test_scaled, columns=['beds','baths','sqft','built','taxes','location'])
+    for (ax1, ax2), col in zip(axs, cols_to_scale):
+        ax1.hist(df[col], bins=bins)
+        ax1.set(title=f'{col} before scaling', xlabel=col, ylabel='count')
+        ax2.hist(df_scaled[col], bins=bins)
+        ax2.set(title=f'{col} after scaling', xlabel=col, ylabel='count')
+    plt.tight_layout()
 
-#     train_scaled['built'] = train.built
-#     train_scaled['location'] = train.location
-#     val_scaled['built'] = val.built
-#     val_scaled['location'] = val.location
-#     test_scaled['built'] = test.built
-#     test_scaled['location'] = test.location
+
+def scale_data(train, val, test, cols_to_scale):
+    train_scaled = train.copy()
+    val_scaled = val.copy()
+    test_scaled = test.copy()
     
-    return X_train_scaled, X_val_scaled, X_test_scaled
+    scaler = MinMaxScaler()
+    scaler.fit(train[cols_to_scale])
+    
+    train_scaled[cols_to_scale] = pd.DataFrame(scaler.transform(train[cols_to_scale]),
+                                               columns = train[cols_to_scale].columns.values).set_index([train.index.values])
+    val_scaled[cols_to_scale] = pd.DataFrame(scaler.transform(val[cols_to_scale]),
+                                               columns = val[cols_to_scale].columns.values).set_index([val.index.values])
+    test_scaled[cols_to_scale] = pd.DataFrame(scaler.transform(test[cols_to_scale]),
+                                               columns = test[cols_to_scale].columns.values).set_index([test.index.values])
+    
+    return train_scaled, val_scaled, test_scaled
+
