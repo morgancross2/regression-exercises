@@ -16,8 +16,11 @@ def plot_residuals(y_train, yhat):
     This function takes in the actual and predicted values and 
     plots them. 
     '''
-    residuals = y_train - yhat
-    plt.scatter(y_train, residuals)
+    df = pd.DataFrame({'y_train':y_train,'yhat':yhat})
+
+    
+    df['residuals'] = df.y_train - df.yhat
+    sns.scatterplot(data=df, x=df.y_train, y=df.residuals)
     plt.xlabel('x = y_train')
     plt.ylabel('y = residuals')
     plt.title('OLS linear model residuals')
