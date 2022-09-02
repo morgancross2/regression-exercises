@@ -12,6 +12,13 @@ def wrangle_zillow():
     This function checks if the zillow data is saved locally. 
     If it is not local, this function reads the zillow data from 
     the CodeUp MySQL database and return it in a DataFrame.
+    
+    The prepare portion of this function removes outliers via 
+    quantiles. 
+        - Renames the features
+        - Feature engineers a readable location
+        - Feature engineers year_built into decade bins
+        - Feature engineers tax_value percentiles(quadrants), split for location
     '''
     
     # Acquire
@@ -35,6 +42,7 @@ def wrangle_zillow():
         
         
     # Prepare
+    # remove outliers
     cols = ['bedroomcnt', 'bathroomcnt', 'calculatedfinishedsquarefeet','taxvaluedollarcnt','taxamount']
     
     for col in cols:
@@ -45,8 +53,10 @@ def wrangle_zillow():
 
         df = df[(df[col] > lower) & (df[col] < upper)]
     
-    df.columns = ['beds', 'baths', 'sqft', 'tax_value', 'built', 'taxes', 'location']
-    df = df.drop(index=df[(df.sqft < 300)].index)
+    # rename columns
+    df.columns = ['beds', 'baths', 'sqft', 'tax_value', 'built', 'taxes', 'city']
+    # create readable location column from city/fips codes
+    df['location'] = df.city.map({6037: 'Los Angeles', 6059: 'Orange', 6111:'Ventura'})
     
     return df
 
@@ -75,6 +85,57 @@ def impute_mode(train, validate, test, col):
     test[[col]] = imputer.transform(test[[col]])
     
     return train, validate, test
+
+def feature_engineer(df):
+    
+    # Creates decades
+    df['decade'] = pd.cut(df.built, 
+                         bins=[1800,1850,1900,1910,1920,1930,1940,1950,1960,1970,1980,1990,2000,2010,2020], 
+                         labels=['1800', '1850', '1900', '1910', '1920', '1930', '1940', '1950', '1960', '1970', '1980', '1990', '2000', '2010'])
+    df.decade = df.decade.astype(int)
+    
+    # Creates location percentiles based on train split, random_state = 123
+    dist = []
+    for index, house in df.iterrows():
+        if house.location == 'Los Angeles':
+            if house.tax_value <= 158299:
+                dist.append('1')
+            elif house.tax_value <= 268714:
+                dist.append('2')
+            elif house.tax_value <= 415949:
+                dist.append('3')
+            elif house.tax_value <= 950000:
+                dist.append('4')
+            else:
+                dist.append('ukn')
+        elif house.location == 'Orange':
+            if house.tax_value <= 222884:
+                dist.append('1')
+            elif house.tax_value <= 362234:
+                dist.append('2')
+            elif house.tax_value <= 529000:
+                dist.append('3')
+            elif house.tax_value <= 950940:
+                dist.append('4')
+            else:
+                dist.append('ukn')
+        elif house.location == 'Ventura':
+            if house.tax_value <= 222515:
+                dist.append('1')
+            elif house.tax_value <= 347481:
+                dist.append('2')
+            elif house.tax_value <= 490000:
+                dist.append('3')
+            elif house.tax_value <= 950809:
+                dist.append('4')
+            else:
+                dist.append('ukn')
+        else:
+            dist.append('ukn')
+    df['location_percentile'] = dist
+    df['location_percentile'] = df.location_percentile.astype(int)
+    
+    return df
 
 
 def vis_scaler (scaler, df, cols_to_scale, bins=10):
