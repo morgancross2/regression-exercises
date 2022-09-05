@@ -94,46 +94,46 @@ def feature_engineer(df):
                          labels=['1800', '1850', '1900', '1910', '1920', '1930', '1940', '1950', '1960', '1970', '1980', '1990', '2000', '2010'])
     df.decade = df.decade.astype(int)
     
-    # Creates location percentiles based on train split, random_state = 123
+    # Creates location percentiles based on train split's taxes feature, random_state = 123
     dist = []
     for index, house in df.iterrows():
         if house.location == 'Los Angeles':
-            if house.tax_value <= 158299:
+            if house.taxes <= 2243.965:
                 dist.append('1')
-            elif house.tax_value <= 268714:
+            elif house.taxes <= 3560.36:
                 dist.append('2')
-            elif house.tax_value <= 415949:
+            elif house.taxes <= 5263.4:
                 dist.append('3')
-            elif house.tax_value <= 950000:
+            elif house.taxes <= 10377.7:
                 dist.append('4')
             else:
                 dist.append('ukn')
         elif house.location == 'Orange':
-            if house.tax_value <= 222884:
+            if house.taxes <= 2695.16:
                 dist.append('1')
-            elif house.tax_value <= 362234:
+            elif house.taxes <= 4203.56:
                 dist.append('2')
-            elif house.tax_value <= 529000:
+            elif house.taxes <= 6013.24:
                 dist.append('3')
-            elif house.tax_value <= 950940:
+            elif house.taxes <= 10377.7:
                 dist.append('4')
             else:
                 dist.append('ukn')
         elif house.location == 'Ventura':
-            if house.tax_value <= 222515:
+            if house.taxes <= 2578.57:
                 dist.append('1')
-            elif house.tax_value <= 347481:
+            elif house.taxes <= 3969.28:
                 dist.append('2')
-            elif house.tax_value <= 490000:
+            elif house.taxes <= 5553.95:
                 dist.append('3')
-            elif house.tax_value <= 950809:
+            elif house.taxes <= 10377.48:
                 dist.append('4')
             else:
                 dist.append('ukn')
         else:
             dist.append('ukn')
     df['location_percentile'] = dist
-    df['location_percentile'] = df.location_percentile.astype(int)
+    #df['location_percentile'] = df.location_percentile.astype(int)
     
     return df
 
