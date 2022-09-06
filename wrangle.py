@@ -58,6 +58,15 @@ def wrangle_zillow():
     # create readable location column from city/fips codes
     df['location'] = df.city.map({6037: 'Los Angeles', 6059: 'Orange', 6111:'Ventura'})
     
+    dummies = pd.get_dummies(df.city)
+    df = pd.concat([df, dummies], axis=1)
+    df = df.drop(columns='city')
+    
+    df.columns = ['beds', 'baths', 'sqft', 'tax_value', 'built', 'taxes', 'location', 'los_angeles', 'orange', 'ventura']
+    df.los_angeles = df.los_angeles.astype(int)
+    df.orange = df.orange.astype(int)
+    df.ventura = df.ventura.astype(int)
+
     return df
 
 def split_data(df):
@@ -104,10 +113,8 @@ def feature_engineer(df):
                 dist.append('2')
             elif house.taxes <= 5263.4:
                 dist.append('3')
-            elif house.taxes <= 10377.7:
-                dist.append('4')
             else:
-                dist.append('ukn')
+                dist.append('4')
         elif house.location == 'Orange':
             if house.taxes <= 2695.16:
                 dist.append('1')
@@ -115,10 +122,8 @@ def feature_engineer(df):
                 dist.append('2')
             elif house.taxes <= 6013.24:
                 dist.append('3')
-            elif house.taxes <= 10377.7:
-                dist.append('4')
             else:
-                dist.append('ukn')
+                dist.append('4')
         elif house.location == 'Ventura':
             if house.taxes <= 2578.57:
                 dist.append('1')
@@ -126,14 +131,12 @@ def feature_engineer(df):
                 dist.append('2')
             elif house.taxes <= 5553.95:
                 dist.append('3')
-            elif house.taxes <= 10377.48:
-                dist.append('4')
             else:
-                dist.append('ukn')
+                dist.append('4')
         else:
             dist.append('ukn')
     df['location_percentile'] = dist
-    #df['location_percentile'] = df.location_percentile.astype(int)
+    df.location_percentile = df.location_percentile.astype(int)
     
     return df
 
